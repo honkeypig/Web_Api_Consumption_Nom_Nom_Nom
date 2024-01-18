@@ -38,21 +38,12 @@ def post_select_scheme_colormind(colour_scheme):
     colour_scheme_2d_list = list(map(list, response_scheme_colormind.json()["result"]))
     for colour_scheme_2d_item in colour_scheme_2d_list:
       rgb_colour = bytearray(colour_scheme_2d_item).hex()
-      # for sub_c_s_2d_item in colour_scheme_2d_item:
-        # rgb_colour += "%x" % sub_c_s_2d_item
-      
       colour_scheme_list.append("#" + rgb_colour)
     print(colour_scheme_list)
-    global tk_window, tk_menubar, tk_main_frame, top_frame, bottom_frame
     tk_main_frame.config(bg=colour_scheme_list[0])
     top_frame.config(bg=colour_scheme_list[1])
     bottom_frame.config(bg=colour_scheme_list[2])
     tk_window.update()
-    # tk_main_frame.update()
-    # top_frame.update()
-    # bottom_frame.update()
-    # for scheme_item in colour_scheme_list:
-    #   print(scheme_item)
   return response_scheme_colormind.status_code
 
 
