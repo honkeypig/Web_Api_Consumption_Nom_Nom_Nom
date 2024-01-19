@@ -1,30 +1,62 @@
 import requests
 import tkinter as tk
+from tkinter import ttk
 
-response_networkcalc = requests.get("https://networkcalc.com/api/ip/10.5.1.0/28,10.5.1.129/27?binary=false")
-print(response_networkcalc.status_code)
-print(response_networkcalc.json()["status"])
-# print(response.json()["address"][0])
-# for networkcalc_item in response_networkcalc.json()["address"]:
-#    for sub_networkcalc_key, sub_networkcalc_item in networkcalc_item.items():
-#        print(sub_networkcalc_key, " \t:\t", sub_networkcalc_item)
-
-# print(response.json()["address"][1])
-
-# #  24 |  25 |  26 |  27 |  28 |  29 |  30 |  31 |  32 |
-# # 256 | 128 |  64 |  32 |  16 |   8 |   4 |   2 |   1 |
-# #enter starting ip address
-# #validate using api response code
-# #enter number of hosts in network
-# #calculate subnet cidr notation
 
 tk_window = tk.Tk()
 tk_menubar = tk.Menu(tk_window)
 tk_main_frame = tk.Frame(tk_window)
 top_frame = tk.Frame(tk_main_frame, name = "top_frame")
 bottom_frame = tk.Frame(tk_main_frame, name = "bottom_frame")
+tk_left_top_frame = tk.Frame(top_frame)
+tk_city_name_entry = tk.Entry(tk_left_top_frame)
 button = tk.Button(bottom_frame)
+tk_city_entry_label = tk.Label(tk_left_top_frame)
+tk_city_entry_button = tk.Button(tk_left_top_frame)
+tk_city_results_treeview = ttk.Treeview(tk_left_top_frame)
+tk_city_results_scrollbar = ttk.Scrollbar(tk_left_top_frame, orient = tk.VERTICAL, command = tk_city_results_treeview.yview)
+
+
 colour_scheme_list=[[49,47,49],[91,83,81],[133,155,143],[226,209,167],[235,198,126]]
+city_results_dict = []
+
+
+def get_location_openweathermap(city_to_find):
+  global city_results_dict
+  city_results_dict.clear()
+  print(city_to_find)
+  # {city name},{state code},{country code}
+  response_openweathermap = requests.get('http://api.openweathermap.org/geo/1.0/direct?q=%s&limit=5&appid=359c67281e6b54b3ad0545d3b88b02b6' % (city_to_find))
+  print(response_openweathermap.status_code)
+  # need to make a list and skip the local_names key
+  #for result_number in range(6):
+    #list(response_openweathermap.json()[result_number])
+
+  for result_number in range(5):
+    # print(result_number)
+    city_results_dict.append(dict(response_openweathermap.json()[result_number]))
+    city_results_dict[result_number].pop("local_names", "not found")
+    city_results_dict[result_number]["lat"] = city_results_dict[result_number].pop("lat")
+    city_results_dict[result_number]["lon"] = city_results_dict[result_number].pop("lon")
+    #for city_item in response_openweathermap.json()[result_number]:
+    #list(response_openweathermap.json()[result_number].values()).pop(1)
+    #tk_city_results_treeview.insert('', tk.END, values=list(response_openweathermap.json()[result_number].values()))
+    tk_city_results_treeview.insert('', tk.END, values=list(city_results_dict[result_number].values()))
+  # city_name_typed = input("Type a City from the list: ")
+  #for openweathermap_item in response_openweathermap.json():
+   # if city_name_typed = openweathermap_item["name"]:
+    #  for city_name_item in op
+  return
+
+
+def city_results_treeview_select(event):
+  global tk_city_results_treeview
+  for selected_item in tk_city_results_treeview.selection():
+      item = tk_city_results_treeview.item(selected_item)
+      record = item['values']
+  print(','.join(record))
+  return
+
 
 def post_select_scheme_colormind(colour_scheme):
   headers = {
@@ -43,6 +75,8 @@ def post_select_scheme_colormind(colour_scheme):
     tk_main_frame.config(bg=colour_scheme_list[0])
     top_frame.config(bg=colour_scheme_list[1])
     bottom_frame.config(bg=colour_scheme_list[2])
+    tk_left_top_frame.config(bg=colour_scheme_list[3])
+    tk_city_name_entry.config(bg=colour_scheme_list[4], fg=colour_scheme_list[0])
     tk_window.update()
   return response_scheme_colormind.status_code
 
@@ -53,11 +87,6 @@ def get_scheme_colormind():
     return response_scheme_colormind.json()["result"]
   else:
     return response_scheme_colormind.status_code
-
-        
-def motion(event):
-  print("Mouse position: (%s %s)" % (event.x, event.y))
-  return
 
 
 def resize(event):
@@ -121,7 +150,35 @@ tk_main_frame.update()
 top_frame.config(bg=colour_scheme_list[1])
 top_frame.pack(padx = 5, pady = 5)
 top_frame.pack_propagate(0)
-top_frame.configure(width = tk_main_frame.winfo_width() - 10, height = tk_main_frame.winfo_height()- 210)
+top_frame.configure(width = tk_main_frame.winfo_width() - 10, height = tk_main_frame.winfo_height() - 210)
+
+tk_left_top_frame.pack(side = "left", padx = 5, pady = 5, fill="y")
+
+tk_city_entry_label.config(text = "Enter a city name")
+tk_city_entry_label.grid(row=0, column=0)
+
+tk_city_name_entry.config(width = 30, bg=colour_scheme_list[3], fg=colour_scheme_list[1], font=('times', 16, 'bold'))
+tk_city_name_entry.grid(row=0, column=1)
+
+tk_city_entry_button.config(text = "Get Location", padx = 10, command=lambda: get_location_openweathermap(tk_city_name_entry.get()))
+tk_city_entry_button.grid(row=1, column=1, sticky="E")
+
+tk_city_results_treeview.config(columns=('City', 'Country', 'State', 'Longitude', 'Latitude'), show='headings')
+tk_city_results_treeview.heading('City', text='City')
+tk_city_results_treeview.column('City', width = 30)
+tk_city_results_treeview.heading('Country', text='Country')
+tk_city_results_treeview.column('Country', width = 30)
+tk_city_results_treeview.heading('State', text='State')
+tk_city_results_treeview.column('State', width = 30)
+tk_city_results_treeview.heading('Longitude', text='Longitude')
+tk_city_results_treeview.column('Longitude', width = 30)
+tk_city_results_treeview.heading('Latitude', text='Latitude')
+tk_city_results_treeview.column('Latitude', width = 30)
+tk_city_results_treeview.bind('<<TreeviewSelect>>', city_results_treeview_select)
+tk_city_results_treeview.grid(row = 2, column = 0, sticky='nsew', columnspan = 6)
+
+tk_city_results_treeview.config(yscroll = tk_city_results_scrollbar.set)
+tk_city_results_scrollbar.grid(row = 2, column = 6, sticky = 'ns')
 
 tk_main_frame.update()
 
@@ -143,22 +200,8 @@ tk_window.config(menu=tk_menubar)
 tk_window.attributes("-alpha", 1.0)
 tk_window.mainloop()
 
-# the plan
+#new plan ... the plan
 
-# allow buttons to be added to the top frame from the bottom frame
-# # add computer / computer group
-# # add switch
-# # add router
-# # add straight through
-# # add crossover
-# # add coaxial
-# # add fibre
-# # not sure about how wireless fits in atm
-
-# buttons access a toplevel window
-# hidden details must be stored / saved to a file
-# toplevel windows are stats windows for network interfaces created from 
-# - required hosts and ip address start
-# default gateway also will be required to be set if router is to another network
-# try to simulate ping
-# attempt routing commands
+# get city by name
+# select from list
+# use weather data by city lat lon for charts
