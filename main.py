@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 
 tk_window = tk.Tk()
@@ -26,12 +27,27 @@ def graph():
 
   return
 
+# API functionality
 
 def get_openmeteo_response(lat, lon):
-  response_openmeteo = requests.get('https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m&timezone=Europe%2FLondon' % (lat, lon))
+  json_string_result = ""
+  json_string_result_temp = ""
+  response_openmeteo = requests.get('https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m' % (lat, lon))
   print(response_openmeteo.status_code)
   for response_openmeteo_item in response_openmeteo:
-    print(response_openmeteo_item) 
+    # print(response_openmeteo_item)
+    json_string_result_temp = str(response_openmeteo_item)
+    json_string_result += json_string_result_temp[2:-1]
+  json_string_result = json_string_result.replace("\\xc2\\xb0C", "degC")
+  print(json_string_result)
+  # print(json_string_result)
+  # print(json.loads(json_string_result))
+  # data = json.loads(str(json_string_result))
+  json_string_result = json.loads(json_string_result)
+  print(json_string_result)
+  for item in json_string_result: #["hourly"]:
+      print(str(item) + " : " + str(json_string_result.get(item))) # keyerror????????????? key and list exist
+      
   return
 
 def get_location_openweathermap(city_to_find):
@@ -103,6 +119,7 @@ def get_scheme_colormind():
   else:
     return response_scheme_colormind.status_code
 
+#GUI UTILITY functions
 
 def resize(event):
   for child in event.widget.pack_slaves(): # event.widget.children.values():
@@ -124,6 +141,7 @@ def resize(event):
     # print(str(child.winfo_width()) + "x" + str(child.winfo_height()))
   return
 
+# GUI setup here down
 
 tk_window.attributes("-alpha", 0.0)
 post_select_scheme_colormind("default")
