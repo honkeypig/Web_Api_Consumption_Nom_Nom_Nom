@@ -1,6 +1,8 @@
 import requests
 import tkinter as tk
 from tkinter import ttk
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 tk_window = tk.Tk()
@@ -20,6 +22,17 @@ tk_city_results_scrollbar = ttk.Scrollbar(tk_left_top_frame, orient = tk.VERTICA
 colour_scheme_list=[[49,47,49],[91,83,81],[133,155,143],[226,209,167],[235,198,126]]
 city_results_dict = []
 
+def graph():
+
+  return
+
+
+def get_openmeteo_response(lat, lon):
+  response_openmeteo = requests.get('https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m&timezone=Europe%2FLondon' % (lat, lon))
+  print(response_openmeteo.status_code)
+  for response_openmeteo_item in response_openmeteo:
+    print(response_openmeteo_item) 
+  return
 
 def get_location_openweathermap(city_to_find):
   global city_results_dict
@@ -54,7 +67,9 @@ def city_results_treeview_select(event):
   for selected_item in tk_city_results_treeview.selection():
       item = tk_city_results_treeview.item(selected_item)
       record = item['values']
-  print(','.join(record))
+  # print(','.join(record))
+  print(record[3] + "|" + record[4])
+  get_openmeteo_response(record[3], record[4])
   return
 
 
@@ -163,7 +178,7 @@ tk_city_name_entry.grid(row=0, column=1)
 tk_city_entry_button.config(text = "Get Location", padx = 10, command=lambda: get_location_openweathermap(tk_city_name_entry.get()))
 tk_city_entry_button.grid(row=1, column=1, sticky="E")
 
-tk_city_results_treeview.config(columns=('City', 'Country', 'State', 'Longitude', 'Latitude'), show='headings')
+tk_city_results_treeview.config(columns=('City', 'Country', 'State', 'Latitude', 'Longitude'), show='headings')
 tk_city_results_treeview.heading('City', text='City')
 tk_city_results_treeview.column('City', width = 30)
 tk_city_results_treeview.heading('Country', text='Country')
